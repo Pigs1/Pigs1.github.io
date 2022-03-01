@@ -1,1 +1,0 @@
-localStorage.test == "Luigi"
