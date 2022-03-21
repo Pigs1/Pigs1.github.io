@@ -86,6 +86,8 @@ Mario.Character = function () {
     this.BossFireballCheckY = null;
     this.BossFireballCheckX2 = null;
     this.BossFireballCheckY2 = null;
+
+    this.character_select2 = Math.random() * 3;
 };
 
 Mario.Character.prototype = new Mario.NotchSprite(null);
@@ -94,6 +96,15 @@ Mario.Character.prototype.Initialize = function (world) {
     this.World = world;
     Mario.MarioCharacter.AxeTriggered = false;
     Mario.MarioCharacter.BowserHealth = 50;
+    if (this.character_select2 >= 1 && this.character_select2 <= 2) {
+        this.character_select = "mario";
+    }
+    else if (this.character_select2 > 2 && this.character_select2 <= 3) {
+        this.character_select = "peach"
+    }
+    else {
+        this.character_select = "luigi"
+    }
 
     if (this.World.LevelType == Mario.LevelType.Toad) {
         this.Y = 100;
@@ -119,7 +130,6 @@ Mario.Character.prototype.Initialize = function (world) {
         this.JumpVel = -1.9;
     }
     else if (this.character_select == "luigi") {
-        this.SetLarge(true, true);
         this.GroundInertia = 0.89;
         this.AirInertia = 0.9;
         this.GroundTraction = 0.93;
@@ -479,7 +489,7 @@ Mario.Character.prototype.Move = function () {
         }
     }
     if (this.OnGround) {
-        this.GroundPoundEnabled = true;
+        this.GroundPoundEnabled = false;
     }
 
     if (!this.CarriedCheck && !this.waslaunched && !this.Ducking) {
@@ -495,8 +505,7 @@ Mario.Character.prototype.Move = function () {
         this.Xa *= 0
         this.Ducking = true
         this.GroundPoundTimer -= 1;
-        this.World.AddSprite(new Mario.Sparkle(this.World, ((this.X + Math.random() * 25 - 15) | 0) + this.Facing * 1,
-            ((this.Y + Math.random() * 6) | 0) - 8, Math.random() * 2 - 1, Math.random(), 0, 1, 5));
+
         if (Enjine.KeyboardInput.IsKeyDown(Enjine.Keys.S) && this.JumpTime != 0) {
             this.GroundPoundTimer = 0
             this.Ducking = false
@@ -589,7 +598,6 @@ Mario.Character.prototype.Move = function () {
         if (this.OnGround && this.DashDance && this.character_select == "fox") {
             this.Xa = -7
             if (this.RunTime <= 30) {
-                this.World.AddSprite(new Mario.Sparkle(this.World, (this.X + Math.random() * 8 - 4) | 0, (this.Y + Math.random() * 4) | 0, Math.random() * 2 - 1, Math.random() * -1, 0, 1, 5));
             }
         }
         else {
@@ -608,7 +616,6 @@ Mario.Character.prototype.Move = function () {
 
             this.Xa = 7
             if (this.RunTime <= 30) {
-                this.World.AddSprite(new Mario.Sparkle(this.World, (this.X + Math.random() * 8 - 4) | 0, (this.Y + Math.random() * 4) | 0, Math.random() * 2 - 1, Math.random() * -1, 0, 1, 5));
             }
         }
         else {
@@ -780,7 +787,6 @@ Mario.Character.prototype.CalcPic = function () {
 
         if (this.Xa > 3 || this.Xa < -3) {
             for (i = 0; i < 3; i++) {
-                this.World.AddSprite(new Mario.Sparkle(this.World, (this.X + Math.random() * 8 - 4) | 0, (this.Y + Math.random() * 4) | 0, Math.random() * 2 - 1, Math.random() * -1, 0, 1, 5));
             }
         }
     }
@@ -1113,7 +1119,6 @@ Mario.Character.prototype.IsBlocking = function (x, y, xa, ya) {
         this.World.Level.SetBlock(x, y, 0);
         for (xx = 0; xx < 2; xx++) {
             for (yy = 0; yy < 2; yy++) {
-                this.World.AddSprite(new Mario.Sparkle(this.World, x * 16 + xx * 8 + ((Math.random() * 8) | 0), y * 16 + yy * 8 + ((Math.random() * 8) | 0), 0, 0, 0, 2, 5));
             }
         }
     }
