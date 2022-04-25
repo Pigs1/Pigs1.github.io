@@ -79,15 +79,9 @@ Mario.Character = function () {
     this.DownWasDown = false;
 
     this.LevelType = null;
-    this.Bowser = null;
-    this.BowserHealth = 50;
-    this.AxeTriggered = false;
-    this.BossFireballCheckX = null;
-    this.BossFireballCheckY = null;
-    this.BossFireballCheckX2 = null;
-    this.BossFireballCheckY2 = null;
 
-    this.character_select2 = Math.random() * 3;
+    this.character_select2 = Math.random() * 3 | 0;
+    this.LargeRandom = Math.random() * 2 | 0
 };
 
 Mario.Character.prototype = new Mario.NotchSprite(null);
@@ -96,14 +90,17 @@ Mario.Character.prototype.Initialize = function (world) {
     this.World = world;
     Mario.MarioCharacter.AxeTriggered = false;
     Mario.MarioCharacter.BowserHealth = 50;
-    if (this.character_select2 >= 1 && this.character_select2 <= 2) {
+    if (this.character_select2 == 1) {
         this.character_select = "mario";
     }
-    else if (this.character_select2 > 2 && this.character_select2 <= 3) {
+    else if (this.character_select2 == 2) {
         this.character_select = "peach"
     }
     else {
         this.character_select = "luigi"
+    }
+    if (this.LargeRandom == 1) {
+        this.SetLarge(true, false);
     }
 
     if (this.World.LevelType == Mario.LevelType.Toad) {
