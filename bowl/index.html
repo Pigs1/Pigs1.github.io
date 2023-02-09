@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="phaser.js"></script>
+    <script src="phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser-arcade-physics.min.js"></script>
+</head>
+
+<body>
+
+    <script>
+        var config = {
+            type: Phaser.AUTO,
+            width: 700,
+            height: 700,
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            },
+
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            }
+
+        };
+        // init global variables
+        var game = new Phaser.Game(config);
+
+        var pastX = []
+        var pastY = []
+
+        var throwing = false
+        var release = false
+        var ball_rolling = false
+
+        var release_velX = 0
+        var release_velY = 0
+        var ball_vel_mult = 4
+
+        var min_release_velY = -300 // velY values are inverse, smaller = more velocity
+        var max_release_velY = -450
+
+        var pin_angle = false
+        var ball_last_velX = 0
+        var ball_last_velY = 0
+
+        var pin_action_decay = 0.8 // how much velocity a pin loses on a collision
+
+        var pins = []
+
+        var startX = 0
+
+        var hook = 0
+
+        var hook_check = 5 // how long after release do you continue to take inputs
+
+        var approach_angle = 0
+        var release_angle = 0
+
+        var ball_collide = false
+
+
+        function preload() {
+            // load assets
+            this.load.image('ball', 'assets/ball.png');
+            this.load.image('lane', 'assets/lane.png')
+            this.load.image('pin', 'assets/pin.png')
+        }
+
+        function create() {
+
+            lane = this.add.image(350, 350, 'lane')
+
+            // create physics object ball
+            ball = this.physics.add.sprite(350, 600, 'ball');
+
+            // create pins, add to list
+            pin1 = this.physics.add.sprite(349, 72, 'pin');
+            pins.push(pin1)
+            pin2 = this.physics.add.sprite(325, 52, 'pin');
+            pins.push(pin2)
+            pin3 = this.physics.add.sprite(373, 52, 'pin');
+            pins.push(pin3)
+            pin4 = this.physics.add.sprite(304, 32, 'pin');
+            pins.push(pin4)
+            pin5 = this.physics.add.sprite(349, 32, 'pin');
+            pins.push(pin5)
+            pin6 = this.physics.add.sprite(394, 32, 'pin');
+            pins.push(pin6)
+            pin7 = this.physics.add.sprite(285, 12, 'pin');
+            pins.push(pin7)
+            pin8 = this.physics.add.sprite(326, 12, 'pin');
+            pins.push(pin8)
+            pin9 = this.physics.add.sprite(373, 12, 'pin');
+            pins.push(pin9)
+            pin10 = this.physics.add.sprite(413, 12, 'pin');
+            pins.push(pin10)
+
+            // iterate through all pins and set their properties
+            for (let i = 0; i < pins.length; i++) {
+                pins[i].setDrag(15, 15)
+                pins[i].setBounce(pin_action_decay, pin_action_decay)
+                pins[i].body.isCircle = true
+
+                pins[i].body.allowRotation = true
+                pins[i].body.moves = true
+
+
+                // add ball collider
+                this.physics.add.collider(ball, pins[i]);
+
+                // add colliders between each pin and its subsequent pins
+                for (let p2 = i + 1; p2 < pins.length; p2++) {
+                    this.physics.add.collider(pins[i], pins[p2])
+                }
+            }
+
+            ball.body.immovable = true
+            ball.setBounce(1, 1)
+            ball.body.isCircle = true
+        }
+
+        function update() {
+            var pointer = this.input.activePointer;
+
+            if (!ball.body.touching.none) {
+                ball_collide = true
+            }
+            if (ball_collide) {
+                for (let i = 0; i < pins.length; i++) {
+                    if (pins[i].body.speed == 0) {
+
+                    }
+                }
+            }
+
+            // on click
+            this.input.on('pointerdown', function (pointer) {
+                if (!ball_rolling) {
+                    throwing = true;
+                    pastX = []
+                    pastY = []
+                }
+            }, this);
+            this.input.on('pointerup', function (pointer) {
+                if (!ball_rolling) {
+                    throwing = false;
+                    release = true;
+                }
+            }, this);
+
+            if (throwing) {
+                ball.setPosition(pointer.worldX, pointer.worldY);
+            }
+
+            if (ball.y < 525 && throwing) {
+                throwing = false;
+                release = true;
+            }
+
+            if (release) {
+                approach_angle = Math.atan2(pastY[pastY.length - 1] - pastY[0], pastX[pastX.length - 1] - pastX[0]) * 180 / Math.PI
+
+                release_velX = pastX[pastX.length - 1] - pastX[0]
+                release_velY = (pastY[pastY.length - 1] - pastY[0]) * ball_vel_mult
+                ball.setVelocityX(release_velX);
+                if (release_velY < 0 && release_velY > min_release_velY) {
+                    release_velY = min_release_velY
+                }
+                else if (release_velY < max_release_velY) {
+                    release_velY = max_release_velY
+                }
+                ball.setVelocityY(release_velY);
+                release = false;
+
+                ball_rolling = true;
+            }
+
+            if (hook_check > 0 && ball_rolling) {
+                hook_check -= 1
+                if (hook_check == 0) {
+                    for (let i = pastX.length - 10; i < pastX.length; i++) {
+                        if (pastX.length < 10) {
+                            startX = pastX[0]
+                        }
+                        if (i == pastX.length - 10) {
+                            startX = pastX[i]
+                        }
+                        if (i == pastX.length - 1) {
+                            endX = pastX[i]
+                            if (pastY.length < 10) {
+                                release_angle = Math.atan2(pastY[pastY.length - 1] - pastY[0], endX - startX) * 180 / Math.PI
+                            }
+                            else {
+                                release_angle = Math.atan2(pastY[pastY.length - 1] - pastY[pastY.length - 10], endX - startX) * 180 / Math.PI
+                            }
+                            hook = (release_angle - approach_angle) * 0.05
+                        }
+                    }
+                }
+            }
+
+            if (pastX.length >= 30) {
+                pastX.pop(0);
+                pastY.pop(0);
+            }
+
+
+            if (ball_rolling) {
+                release_velX += hook
+                ball.setVelocityX(release_velX)
+
+                release_velY += 0.05
+                ball.setVelocityY(release_velY);
+            }
+
+            ball_last_velX = release_velX
+            ball_last_velY = release_velY
+
+            pastX.push(pointer.worldX);
+            pastY.push(pointer.worldY);
+
+            console.log(release_velY)
+
+
+            if (ball.y <= 150 && ball.y >= 100) {
+                hook *= 1.3
+            }
+
+            for (let i = 0; i < pins.length; i++){
+                
+            }
+        }
+    </script>
+
+</body>
+
+</html>
